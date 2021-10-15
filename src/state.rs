@@ -21,6 +21,8 @@ pub const WHITELIST_KEY: &[u8] = b"whitelist";
 pub const PRELOAD_KEY: &[u8] = b"preload";
 /// Storage for callback hash
 pub const CALLBACK_KEY: &[u8] = b"callback";
+/// Storage for start time key for whitelist usage
+pub const START_TIME_KEY: &[u8] = b"start";
 
 /// storage key for config
 pub const CONFIG_KEY: &[u8] = b"config";

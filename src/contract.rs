@@ -25,7 +25,7 @@ use crate::royalties::{RoyaltyInfo, StoredRoyaltyInfo};
 use crate::state::{
     get_txs, json_may_load, json_save, load, may_load, remove, save, store_burn, store_mint,
     store_transfer, AuthList, Config, Permission, PermissionType, PreLoad, ReceiveRegistration, WHITELIST_KEY, BLOCK_KEY, CALLBACK_KEY,
-    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, PREFIX_ALL_PERMISSIONS,
+    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
     PREFIX_MINT_RUN_NUM, PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
     PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,
@@ -52,6 +52,9 @@ pub const MAX_TOKENS: u32 = 580;
 
 ///Mint cost per Anon
 pub const MINT_COST: u128 = 125000000; //125 sSCRT
+
+///Time until whitelist expires
+pub const EXPIRATION: u64 = 259200; //3 days
 
 
 
@@ -102,7 +105,10 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 
     let callback_hash: String = msg.callback;
 
+    let start_time = env.block.time;
+
     let minters = vec![admin_raw];
+    save(&mut deps.storage, START_TIME_KEY, &start_time)?;
     save(&mut deps.storage, CALLBACK_KEY, &callback_hash)?;
     save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
     save(&mut deps.storage, PRELOAD_KEY, &preload_tokens)?;
@@ -505,8 +511,11 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let sender: HumanAddr = env.message.sender.clone();
 
     //Checks if minter has a whitelist reservation, and removes their reservation after minting
+    let start: u64 = load(&deps.storage, &START_TIME_KEY)?;
     let mut whitelist: Vec<HumanAddr> = load(&deps.storage, &WHITELIST_KEY)?;
-    if !whitelist.contains(&env.message.sender) && config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 {
+    if !whitelist.contains(&env.message.sender) && 
+        config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 && 
+        env.block.time < start + EXPIRATION{
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
         ))
@@ -2917,7 +2926,7 @@ pub fn query_possible_mints<S: Storage, A: Api, Q: Querier>(
     //Checks if minter has a whitelist reservation, and removes their reservation after minting
     let whitelisted: bool;
     let whitelist: Vec<HumanAddr> = load(&deps.storage, &WHITELIST_KEY)?;
-    if whitelist.contains(&deps.api.human_address(&viewer_raw.clone().unwrap())?) {
+    if whitelist.contains(&deps.api.human_address(&viewer_raw.clone().unwrap())?){
         whitelisted = true;
     }
     else {
