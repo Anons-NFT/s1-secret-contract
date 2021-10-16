@@ -513,14 +513,21 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     //Checks if minter has a whitelist reservation, and removes their reservation after minting
     let start: u64 = load(&deps.storage, &START_TIME_KEY)?;
     let mut whitelist: Vec<HumanAddr> = load(&deps.storage, &WHITELIST_KEY)?;
-    if !whitelist.contains(&env.message.sender) && 
+
+    //Clears whitelist if time has expired and not already cleared
+    if env.block.time >= start + EXPIRATION && whitelist.len() > 0 {
+        whitelist.clear();
+        save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
+    }
+
+    else if !whitelist.contains(&env.message.sender) && 
         config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 && 
         env.block.time < start + EXPIRATION{
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
         ))
     }
-    else if whitelist.contains(&env.message.sender) {
+    else if whitelist.len() > 0 && whitelist.contains(&env.message.sender) {
         for (i,address) in whitelist.clone().iter_mut().enumerate() {
             if address == &sender {
                 whitelist.swap_remove(i);
@@ -529,6 +536,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
         }
         save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
     }
+
 
 
     //Checks if minter has already minted 3 anons, otherwise increments user mint count

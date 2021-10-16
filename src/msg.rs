@@ -86,7 +86,7 @@ impl Default for InitConfig {
             public_token_supply: Some(true),
             public_owner: Some(false),
             enable_sealed_metadata: Some(false),
-            unwrapped_metadata_is_private: Some(false),
+            unwrapped_metadata_is_private: Some(true),
             minter_may_update_metadata: Some(false),
             owner_may_update_metadata: Some(true),
             enable_burn: Some(false),
