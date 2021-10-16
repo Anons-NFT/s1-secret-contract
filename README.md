@@ -8,6 +8,8 @@
 
 3. `mint()` requires user to send sSCRT which is deivided amongst several wallets
 
+4. Removed `mint_clones()` and `batch_mint()`
+
 
 **Whitelist Minters**
 

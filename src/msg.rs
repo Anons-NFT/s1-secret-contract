@@ -129,6 +129,7 @@ pub enum HandleMsg {
         /// optional message length padding
         padding: Option<String>,
     },
+    /* 
     /// Mint multiple tokens
     BatchMintNft {
         /// list of mint operations to perform
@@ -161,6 +162,7 @@ pub enum HandleMsg {
         /// optional message length padding
         padding: Option<String>,
     },
+    */
     /// set the public and/or private metadata.  This can be called by either the token owner or
     /// a valid minter if they have been given this power by the appropriate config values
     SetMetadata {
@@ -476,6 +478,7 @@ pub enum HandleAnswer {
     MintNft {
         token_id: String,
     },
+    /*
     /// BatchMintNft will also display the minted tokens' IDs in the log attributes under the
     /// key `minted` in case minting was done as a callback message
     BatchMintNft {
@@ -491,6 +494,7 @@ pub enum HandleAnswer {
         /// token id of the last minted clone
         last_minted: String,
     },
+    */
     SetMetadata {
         status: ResponseStatus,
     },

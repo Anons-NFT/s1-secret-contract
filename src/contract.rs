@@ -189,6 +189,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             //royalty_info,
             memo,
         ),
+        /* 
         HandleMsg::BatchMintNft { mut mints, .. } => batch_mint(
             deps,
             env,
@@ -218,6 +219,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             royalty_info,
             memo,
         ),
+        */
         HandleMsg::SetMetadata {
             token_id,
             public_metadata,
@@ -732,6 +734,8 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     })
 }
 
+/* 
+
 /// Returns HandleResult
 ///
 /// mints many tokens
@@ -867,6 +871,9 @@ pub fn mint_clones<S: Storage, A: Api, Q: Querier>(
         })?),
     })
 }
+
+*/
+
 
 /// Returns HandleResult
 ///
