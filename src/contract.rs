@@ -25,7 +25,7 @@ use crate::royalties::{RoyaltyInfo, StoredRoyaltyInfo};
 use crate::state::{
     get_txs, json_may_load, json_save, load, may_load, remove, save, store_burn, store_mint,
     store_transfer, AuthList, Config, Permission, PermissionType, PreLoad, ReceiveRegistration, WHITELIST_KEY, BLOCK_KEY, CALLBACK_KEY,
-    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
+    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, REVEAL_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
     PREFIX_MINT_RUN_NUM, PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
     PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,
@@ -107,7 +107,10 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 
     let start_time = env.block.time;
 
+    let reveal: bool = false;
+
     let minters = vec![admin_raw];
+    save(&mut deps.storage, REVEAL_KEY, &reveal)?;
     save(&mut deps.storage, START_TIME_KEY, &start_time)?;
     save(&mut deps.storage, CALLBACK_KEY, &callback_hash)?;
     save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
@@ -461,6 +464,9 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::SetContractStatus { level, .. } => {
             set_contract_status(deps, env, &mut config, level)
         }
+        HandleMsg::RevealAllTokens {  } => {
+            reveal_all_tokens(deps, env, &mut config)
+        }
     };
     pad_handle_result(response, BLOCK_SIZE)
 }
@@ -520,22 +526,29 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
         save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
     }
 
-    else if !whitelist.contains(&env.message.sender) && 
+    //If whitelist still has contents, test if user is in and is able to mint
+    if whitelist.len() > 0 {
+
+        if !whitelist.contains(&env.message.sender) && 
         config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 && 
         env.block.time < start + EXPIRATION{
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
         ))
     }
-    else if whitelist.len() > 0 && whitelist.contains(&env.message.sender) {
-        for (i,address) in whitelist.clone().iter_mut().enumerate() {
-            if address == &sender {
-                whitelist.swap_remove(i);
-                break;
+        else if whitelist.contains(&env.message.sender) {
+            for (i,address) in whitelist.clone().iter_mut().enumerate() {
+                if address == &sender {
+                    whitelist.swap_remove(i);
+                    break;
+                }
             }
+            save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
         }
-        save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
+
+
     }
+
 
 
 
@@ -559,7 +572,6 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     //Send payment
     let mut msg_list: Vec<CosmosMsg> = vec![];
 
-    // First royalties contain dev addresses 
     let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
     
     // Contract callback hash
@@ -653,7 +665,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     let num = (rng.next_u32() % (token_data_list.len() as u32 - 1)) as usize; // a number between 0 and the last slot in token_data_list
 
-    //Assign data from pool pull
+    //Assign data taken from pool
     let token_id: Option<String> = Some(token_data_list[num].id.clone());
 
 
@@ -699,6 +711,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     token_data_list.swap_remove(num);
     save(&mut deps.storage, PRELOAD_KEY, &token_data_list)?;
     
+
     let mut mints = vec![Mint {
         token_id,
         owner,
@@ -736,7 +749,7 @@ pub fn batch_mint<S: Storage, A: Api, Q: Querier>(
     config: &mut Config,
     priority: u8,
     mints: &mut Vec<Mint>,
-) -> HandleResult {
+) -> HandleResult {    
     check_status(config.status, priority)?;
     let sender_raw = deps.api.canonical_address(&env.message.sender)?;
     let minters: Vec<CanonicalAddr> =
@@ -1906,6 +1919,31 @@ pub fn set_contract_status<S: Storage, A: Api, Q: Querier>(
     })
 }
 
+
+/// When triggers allows for image data to be queried
+pub fn reveal_all_tokens<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    config: &mut Config,
+) -> HandleResult {
+    let sender_raw = deps.api.canonical_address(&env.message.sender)?;
+    if config.admin != sender_raw {
+        return Err(StdError::generic_err(
+            "This is an admin command and can only be run from the admin address",
+        ));
+    }
+    
+    save(&mut deps.storage, REVEAL_KEY, &true)?;
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![],
+        data: Some(to_binary(&HandleAnswer::RevealAllTokens {
+            status: Success,
+        })?),
+    })
+}
+
 /////////////////////////////////////// Query /////////////////////////////////////
 /// Returns QueryResult
 ///
@@ -2167,6 +2205,15 @@ pub fn query_owner_of<S: Storage, A: Api, Q: Querier>(
 /// * `storage` - a reference to the contract's storage
 /// * `token_id` - string slice of the token id
 pub fn query_nft_info<S: ReadonlyStorage>(storage: &S, token_id: &str) -> QueryResult {
+
+    //Checks if all tokens have been revealed yet
+    let revealed: bool = load(storage, &REVEAL_KEY)?;
+    if !revealed {
+        return Err(StdError::generic_err(
+            "Tokens have not yet been revealed!",
+        ))
+    }
+
     let map2idx = ReadonlyPrefixedStorage::new(PREFIX_MAP_TO_INDEX, storage);
     let may_idx: Option<u32> = may_load(&map2idx, token_id.as_bytes())?;
     // if token id was found
@@ -2258,6 +2305,15 @@ pub fn query_all_nft_info<S: Storage, A: Api, Q: Querier>(
     viewer: Option<ViewerInfo>,
     include_expired: Option<bool>,
 ) -> QueryResult {
+
+    //Checks if all tokens have been revealed yet
+    let revealed: bool = load(&deps.storage, &REVEAL_KEY)?;
+    if !revealed {
+        return Err(StdError::generic_err(
+            "Tokens have not yet been revealed!",
+        ))
+    }
+
     let (owner, approvals, idx) = process_cw721_owner_of(deps, token_id, viewer, include_expired)?;
     let meta_store = ReadonlyPrefixedStorage::new(PREFIX_PUB_META, &deps.storage);
     let info: Option<Metadata> = may_load(&meta_store, &idx.to_le_bytes())?;

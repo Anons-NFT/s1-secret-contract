@@ -394,6 +394,10 @@ pub enum HandleMsg {
         /// optional message length padding
         padding: Option<String>,
     },
+    /// Allows tokens to have their public data queried
+    RevealAllTokens {
+
+    }
 }
 
 /// permission access level
@@ -555,6 +559,9 @@ pub enum HandleAnswer {
         status: ResponseStatus,
     },
     SetContractStatus {
+        status: ResponseStatus,
+    },
+    RevealAllTokens {
         status: ResponseStatus,
     },
 }
