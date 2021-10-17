@@ -51,7 +51,7 @@ pub const ID_BLOCK_SIZE: u32 = 64;
 pub const MAX_TOKENS: u32 = 580;
 
 ///Mint cost per Anon
-pub const MINT_COST: u128 = 125000000; //125 sSCRT
+pub const MINT_COST: u128 = 150000000; //150 sSCRT
 
 ///Time until whitelist expires
 pub const EXPIRATION: u64 = 259200; //3 days
@@ -515,6 +515,10 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
             "There are only 580 tokens in this collection",
         ))
     }
+    //If this current mint brings count to 580, make reveal true
+    else if config.token_cnt == MAX_TOKENS - 1 {
+        save(&mut deps.storage, REVEAL_KEY, &true)?;
+    }
 
     let sender: HumanAddr = env.message.sender.clone();
 
@@ -572,8 +576,9 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
 
     //Send payment
-    let mut msg_list: Vec<CosmosMsg> = vec![];
 
+
+    let mut msg_list: Vec<CosmosMsg> = vec![];
     let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
     
     // Contract callback hash

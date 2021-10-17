@@ -51,3 +51,5 @@
 
 
 3. `reveal_all_tokens()` sets `reveal` to `true` and allows all public metadata to be queriable. This is only accessible by the admin
+
+4. If 580th token is minted in `mint()`, `reveal` will be set to `true`
