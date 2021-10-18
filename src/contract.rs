@@ -48,7 +48,7 @@ pub const BLOCK_SIZE: usize = 256;
 pub const ID_BLOCK_SIZE: u32 = 64;
 
 ///Max number of tokens
-pub const MAX_TOKENS: u32 = 580;
+pub const MAX_TOKENS: u32 = 16;
 
 ///Mint cost per Anon
 pub const MINT_COST: u128 = 150000000; //150 sSCRT
@@ -189,7 +189,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             //royalty_info,
             memo,
         ),
-        /* 
+        /*
         HandleMsg::BatchMintNft { mut mints, .. } => batch_mint(
             deps,
             env,
@@ -506,7 +506,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     check_status(config.status, priority)?;
 
-    
+
 
 
     //Does not let minting occur above 580 tokens
@@ -535,8 +535,8 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     //If whitelist still has contents, test if user is in and is able to mint
     if whitelist.len() > 0 {
 
-        if !whitelist.contains(&env.message.sender) && 
-        config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 && 
+        if !whitelist.contains(&env.message.sender) &&
+        config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 &&
         env.block.time < start + EXPIRATION{
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
@@ -580,10 +580,10 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
     let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
-    
+
     // Contract callback hash
     let callback: String = load(&deps.storage, &CALLBACK_KEY)?;
-    
+
 
     // Dev 1
     let recipient = deps.api.human_address(&royalty_list.royalties[0].recipient)?;
@@ -717,7 +717,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     //Remove preloaded item from list
     token_data_list.swap_remove(num);
     save(&mut deps.storage, PRELOAD_KEY, &token_data_list)?;
-    
+
 
     let mut mints = vec![Mint {
         token_id,
@@ -739,7 +739,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-/* 
+/*
 
 /// Returns HandleResult
 ///
@@ -758,7 +758,7 @@ pub fn batch_mint<S: Storage, A: Api, Q: Querier>(
     config: &mut Config,
     priority: u8,
     mints: &mut Vec<Mint>,
-) -> HandleResult {    
+) -> HandleResult {
     check_status(config.status, priority)?;
     let sender_raw = deps.api.canonical_address(&env.message.sender)?;
     let minters: Vec<CanonicalAddr> =
@@ -920,7 +920,7 @@ pub fn set_metadata<S: Storage, A: Api, Q: Querier>(
             return Err(StdError::generic_err(custom_err));
         }
     }
-    /* 
+    /*
     if let Some(public) = public_metadata {
         set_metadata_impl(&mut deps.storage, &token, idx, PREFIX_PUB_META, &public)?;
     }
@@ -1944,7 +1944,7 @@ pub fn reveal_all_tokens<S: Storage, A: Api, Q: Querier>(
             "This is an admin command and can only be run from the admin address",
         ));
     }
-    
+
     save(&mut deps.storage, REVEAL_KEY, &true)?;
 
     Ok(HandleResponse {
@@ -2995,7 +2995,7 @@ pub fn query_possible_mints<S: Storage, A: Api, Q: Querier>(
         })
         .transpose()?;
 
-    // Keeps track of how many mints are availible for the user 
+    // Keeps track of how many mints are availible for the user
     let mut mint_num: u8 = 0;
 
 
@@ -3011,9 +3011,9 @@ pub fn query_possible_mints<S: Storage, A: Api, Q: Querier>(
 
     //How many mints the user has already made
     let remaining_mints = 3 - may_load(&deps.storage, &deps.api.human_address(&viewer_raw.unwrap())?.as_str().as_bytes())?.unwrap_or(0u8);
- 
 
-    
+
+
 
     let config: Config = load(&deps.storage, CONFIG_KEY)?;
     //How many tokens are left in the contract up to the mintable amount
@@ -3034,7 +3034,7 @@ pub fn query_possible_mints<S: Storage, A: Api, Q: Querier>(
     else if remaining_mints < remaining_tokens {
         mint_num = remaining_mints;
     }
-    
+
     to_binary(&QueryAnswer::PossibleMints { mint_num })
 }
 
