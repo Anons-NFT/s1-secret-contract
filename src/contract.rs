@@ -167,7 +167,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
 
     let response = match msg {
-        HandleMsg::MintNft {
+        HandleMsg::Mint {
             //token_id,
             owner,
             //public_metadata,
@@ -579,88 +579,88 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
 
     let mut msg_list: Vec<CosmosMsg> = vec![];
-    let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
+    // let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
 
     // Contract callback hash
-    let callback: String = load(&deps.storage, &CALLBACK_KEY)?;
+    // let callback: String = load(&deps.storage, &CALLBACK_KEY)?;
 
 
-    // Dev 1
-    let recipient = deps.api.human_address(&royalty_list.royalties[0].recipient)?;
-    let amount = Uint128(MINT_COST * 65 / 100);
-    let padding = None;
-    let block_size = 256;
-    let callback_code_hash = callback.clone();
-    let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    // // Dev 1
+    // let recipient = deps.api.human_address(&royalty_list.royalties[0].recipient)?;
+    // let amount = Uint128(MINT_COST * 65 / 100);
+    // let padding = None;
+    // let block_size = 256;
+    // let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
+    // let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    let mut cosmos_msg = transfer_msg(
-        recipient,
-        amount,
-        padding,
-        block_size,
-        callback_code_hash,
-        contract_addr,
-    )?;
+    // let mut cosmos_msg = transfer_msg(
+    //     recipient,
+    //     amount,
+    //     padding,
+    //     block_size,
+    //     callback_code_hash,
+    //     contract_addr,
+    // )?;
 
-    msg_list.push(cosmos_msg);
+    // msg_list.push(cosmos_msg);
 
-    // Dev 2
-    let recipient = deps.api.human_address(&royalty_list.royalties[1].recipient)?;
-    let amount = Uint128(MINT_COST * 15 / 100);
-    let padding = None;
-    let block_size = 256;
-    let callback_code_hash = callback.clone();
-    let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    // // Dev 2
+    // let recipient = deps.api.human_address(&royalty_list.royalties[1].recipient)?;
+    // let amount = Uint128(MINT_COST * 15 / 100);
+    // let padding = None;
+    // let block_size = 256;
+    // let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
+    // let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    cosmos_msg = transfer_msg(
-        recipient,
-        amount,
-        padding,
-        block_size,
-        callback_code_hash,
-        contract_addr,
-    )?;
+    // cosmos_msg = transfer_msg(
+    //     recipient,
+    //     amount,
+    //     padding,
+    //     block_size,
+    //     callback_code_hash,
+    //     contract_addr,
+    // )?;
 
-    msg_list.push(cosmos_msg);
+    // msg_list.push(cosmos_msg);
 
-    // Dev 3
-    let recipient = deps.api.human_address(&royalty_list.royalties[2].recipient)?;
-    let amount = Uint128(MINT_COST * 15 / 100);
-    let padding = None;
-    let block_size = 256;
-    let callback_code_hash = callback.clone();
-    let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    // // Dev 3
+    // let recipient = deps.api.human_address(&royalty_list.royalties[2].recipient)?;
+    // let amount = Uint128(MINT_COST * 15 / 100);
+    // let padding = None;
+    // let block_size = 256;
+    // let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
+    // let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    cosmos_msg = transfer_msg(
-        recipient,
-        amount,
-        padding,
-        block_size,
-        callback_code_hash,
-        contract_addr,
-    )?;
+    // cosmos_msg = transfer_msg(
+    //     recipient,
+    //     amount,
+    //     padding,
+    //     block_size,
+    //     callback_code_hash,
+    //     contract_addr,
+    // )?;
 
-    msg_list.push(cosmos_msg);
+    // msg_list.push(cosmos_msg);
 
 
-    // Dev 3
-    let recipient = deps.api.human_address(&royalty_list.royalties[3].recipient)?;
-    let amount = Uint128(MINT_COST * 5 / 100);
-    let padding = None;
-    let block_size = 256;
-    let callback_code_hash = callback;
-    let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    // // Dev 3
+    // let recipient = deps.api.human_address(&royalty_list.royalties[3].recipient)?;
+    // let amount = Uint128(MINT_COST * 5 / 100);
+    // let padding = None;
+    // let block_size = 256;
+    // let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
+    // let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    cosmos_msg = transfer_msg(
-        recipient,
-        amount,
-        padding,
-        block_size,
-        callback_code_hash,
-        contract_addr,
-    )?;
+    // cosmos_msg = transfer_msg(
+    //     recipient,
+    //     amount,
+    //     padding,
+    //     block_size,
+    //     callback_code_hash,
+    //     contract_addr,
+    // )?;
 
-    msg_list.push(cosmos_msg);
+    // msg_list.push(cosmos_msg);
 
 
 

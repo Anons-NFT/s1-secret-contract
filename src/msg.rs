@@ -111,7 +111,7 @@ pub struct PostInitCallback {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     /// mint new token
-    MintNft {
+    Mint {
         /// optional token id. if omitted, use current token index
         //token_id: Option<String>,
         /// optional owner address. if omitted, owned by the message sender
@@ -129,7 +129,7 @@ pub enum HandleMsg {
         /// optional message length padding
         padding: Option<String>,
     },
-    /* 
+    /*
     /// Mint multiple tokens
     BatchMintNft {
         /// list of mint operations to perform
