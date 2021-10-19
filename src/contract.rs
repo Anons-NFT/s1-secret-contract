@@ -13,7 +13,7 @@ use secret_toolkit::utils::{pad_handle_result, pad_query_result};
 
 use crate::expiration::Expiration;
 use crate::inventory::{Inventory, InventoryIter};
-use crate::mint_run::{SerialNumber, StoredMintRunInfo};
+use crate::mint_run::{StoredMintRunInfo};
 use crate::msg::{
     AccessLevel, Burn, ContractStatus, Cw721Approval, Cw721OwnerOfResponse, HandleAnswer,
     HandleMsg, InitMsg, Mint, QueryAnswer, QueryMsg, ReceiverInfo, ResponseStatus::Success, Send,
@@ -27,7 +27,7 @@ use crate::state::{
     store_transfer, AuthList, Config, Permission, PermissionType, PreLoad, ReceiveRegistration, WHITELIST_KEY, BLOCK_KEY, CALLBACK_KEY,
     CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, REVEAL_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
-    PREFIX_MINT_RUN_NUM, PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
+    PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
     PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,
 };
 use crate::token::{Metadata, Token, Extension};

@@ -1,10 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::contract::{handle, init, query};
-    use crate::mint_run::MintRunInfo;
-    use crate::msg::{HandleMsg, InitMsg, QueryAnswer, QueryMsg};
+    use crate::contract::{handle, init};
+    use crate::msg::{HandleMsg, InitMsg};
     use cosmwasm_std::testing::*;
-    use cosmwasm_std::{from_binary, Extern, HumanAddr, InitResponse, StdError, StdResult};
+    use cosmwasm_std::{ Extern, HumanAddr, InitResponse, StdError, StdResult};
     use std::any::Any;
 
     // Helper functions
@@ -21,8 +20,11 @@ mod tests {
             symbol: "S721".to_string(),
             admin: Some(HumanAddr("admin".to_string())),
             entropy: "We're going to need a bigger boat".to_string(),
+            preload_tokens:Vec::new(),
+            whitelist_minters:Vec::new(),
             royalty_info: None,
             config: None,
+            callback:"526843da19e865fc93130b3178cef8ac82c3956e72263017290b63c10cdaf595".to_string(),
             post_init_callback: None,
         };
 
@@ -51,8 +53,9 @@ mod tests {
 
         // test non-minter attempt
         let handle_msg = HandleMsg::MintNft {
-            owner: Some("secret1ntdya7huz8n4gsh3zlpapytqdqk0s5x8kru4nw".to_string()),
-            memo: Some("luiseel".to_string())
+            owner: Some(HumanAddr("secret1ntdya7huz8n4gsh3zlpapytqdqk0s5x8kru4nw".to_string())),
+            memo: Some("luiseel".to_string()),
+            padding:Some("sodhjenygr945aws439uu94fkgdmnlmsf409".to_string())
         };
         let handle_result = handle(&mut deps, mock_env("alice", &[]), handle_msg);
         let error = extract_error_msg(handle_result);
