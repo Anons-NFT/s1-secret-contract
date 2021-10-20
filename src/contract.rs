@@ -468,9 +468,32 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         }
         HandleMsg::RevealAllTokens {  } => {
             reveal_all_tokens(deps, env, &mut config)
+        },
+        HandleMsg::Receive {
+            from,
+            amount,
+            msg
+        } => {
+            receive(deps, env, from, amount, msg)
         }
     };
     pad_handle_result(response, BLOCK_SIZE)
+}
+
+pub fn receive<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    from: HumanAddr,
+    amount: Uint128,
+    msg: Binary,
+) -> HandleResult {
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![],
+        data: Some(to_binary(&HandleAnswer::Receive {
+            status: Success
+        })?),
+    })
 }
 
 /// Returns HandleResult

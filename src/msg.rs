@@ -2,7 +2,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{Binary, Coin, HumanAddr};
+use cosmwasm_std::{Binary, Coin, HumanAddr, Uint128};
 
 use crate::expiration::Expiration;
 use crate::mint_run::{MintRunInfo, SerialNumber};
@@ -110,6 +110,11 @@ pub struct PostInitCallback {
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
+    Receive {
+        amount: Uint128,
+        msg: Binary,
+        from: HumanAddr
+    },
     /// mint new token
     Mint {
         /// optional token id. if omitted, use current token index
@@ -568,6 +573,9 @@ pub enum HandleAnswer {
     RevealAllTokens {
         status: ResponseStatus,
     },
+    Receive {
+        status: ResponseStatus
+    }
 }
 
 /// the address and viewing key making an authenticated query request
