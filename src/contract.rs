@@ -489,7 +489,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     Ok(HandleResponse {
         messages: vec![],
-        log: vec![],
+        log: vec![log("minted", "hola")],
         data: Some(to_binary(&HandleAnswer::Receive {
             status: Success
         })?),
