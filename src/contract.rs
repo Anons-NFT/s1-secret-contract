@@ -453,14 +453,14 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    sender: HumanAddr,
-    from: HumanAddr,
+    _sender: HumanAddr,
+    _from: HumanAddr,
     amount: Uint128,
     msg: Option<Binary>,
 ) -> HandleResult {
     let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    if from != sscrt_address {
+    if env.message.sender != sscrt_address {
         return Err(StdError::generic_err(
             "Address is not SSCRT contract",
         ));
