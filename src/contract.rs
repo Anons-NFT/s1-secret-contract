@@ -459,7 +459,14 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     msg: Option<Binary>,
 ) -> HandleResult {
     let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
-    if env.message.sender != sscrt_address {
+
+    //{send:{...}}
+    if sender == from {
+        return Err(StdError::generic_err(
+            "Sender and From must not be the same, use send_from to perform this transaction",
+        ));
+    }
+    if from != sscrt_address {
         return Err(StdError::generic_err(
             "Address is not SSCRT contract",
         ));
@@ -4386,7 +4393,7 @@ fn send_list<S: Storage, A: Api, Q: Querier>(
                     config,
                     sender,
                     token_id.clone(),
-                    contract_raw.clone():,
+                    contract_raw.clone(),
                     &mut oper_for,
                     &mut inv_updates,
                     send.memo.clone(),
