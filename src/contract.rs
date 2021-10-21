@@ -1,7 +1,7 @@
 use cosmwasm_std::{
     log, to_binary, Api, Binary, BlockInfo, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse,
     HandleResult, HumanAddr, InitResponse, InitResult, Querier, QueryResult, ReadonlyStorage,
-    StdError, StdResult, Storage, WasmMsg, Uint128
+    StdError, StdResult, Storage, WasmMsg, Uint128, from_binary
 };
 use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 use primitive_types::U256;
@@ -444,7 +444,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             amount,
             msg
         } => {
-            receive(deps, env, from, amount, msg)
+            receive(deps, env, sender, from, amount, msg)
         }
     };
     pad_handle_result(response, BLOCK_SIZE)
@@ -453,9 +453,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    _from: HumanAddr,
+    sender: HumanAddr,
+    from: HumanAddr,
     amount: Uint128,
-    _msg: Option<Binary>,
+    msg: Option<Binary>,
 ) -> HandleResult {
     let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
     if env.message.sender != sscrt_address {
@@ -471,16 +472,16 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
         ));
     }
     let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
-    let memo = Some("davidrl".to_string());
-    let owner = Some(HumanAddr("secret1vftdu34y7rq99xyd4xfj8xp5xs93mr643t40sy".to_string()));
-    // let _msg = msg.as_ref().unwrap().to_base64();
+    let bin_msg = msg.unwrap();
+    let memo = from_binary(&bin_msg)?;
 
+    // let _msg = msg.as_ref().unwrap().to_base64();
     return mint(
         deps,
         env,
         &mut config,
         ContractStatus::Normal.to_u8(),
-        owner,
+        Some(sender),
         memo,
     );
 }
@@ -4385,7 +4386,7 @@ fn send_list<S: Storage, A: Api, Q: Querier>(
                     config,
                     sender,
                     token_id.clone(),
-                    contract_raw.clone(),
+                    contract_raw.clone():,
                     &mut oper_for,
                     &mut inv_updates,
                     send.memo.clone(),
