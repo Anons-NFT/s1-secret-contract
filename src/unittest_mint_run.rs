@@ -99,16 +99,17 @@ mod tests {
         );
 
         // test non-minter attempt
-        let handle_msg = HandleMsg::MintNft {
+        let handle_msg = HandleMsg::Mint {
             owner: Some(HumanAddr("secret1ntdya7huz8n4gsh3zlpapytqdqk0s5x8kru4nw".to_string())),
             memo: Some("luiseel".to_string()),
             padding:Some("sodhjenygr945aws439uu94fkgdmnlmsf409".to_string())
         };
-        let handle_result = handle(&mut deps, mock_env("secret1ntdya7huz8n4gsh3zlpapytqdqk0s5x8kru4nw", &[]), handle_msg);
+        let handle_result = handle(&mut deps, mock_env("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx", &[]), handle_msg);
 
         // let error = extract_error_msg(handle_result);
         print!("hola {:?} \n",handle_result.ok().unwrap());
         // assert!(handle_result.is_ok());
         // assert!(error.contains("Only designated minters are allowed to mint"));
+        // print!("error here\n {}",error);
     }
 }

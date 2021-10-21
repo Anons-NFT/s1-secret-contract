@@ -178,12 +178,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 
     let response = match msg {
         HandleMsg::Mint {
-            //token_id,
             owner,
-            //public_metadata,
-            //private_metadata,
-            //serial_number,
-            //royalty_info,
             memo,
             ..
         } => mint(
@@ -191,45 +186,9 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             env,
             &mut config,
             ContractStatus::Normal.to_u8(),
-            //token_id,
             owner,
-            //public_metadata,
-            //private_metadata,
-            //serial_number,
-            //royalty_info,
             memo,
         ),
-        /*
-        HandleMsg::BatchMintNft { mut mints, .. } => batch_mint(
-            deps,
-            env,
-            &mut config,
-            ContractStatus::Normal.to_u8(),
-            &mut mints,
-        ),
-        HandleMsg::MintNftClones {
-            mint_run_id,
-            quantity,
-            owner,
-            public_metadata,
-            private_metadata,
-            royalty_info,
-            memo,
-            ..
-        } => mint_clones(
-            deps,
-            env,
-            &mut config,
-            ContractStatus::Normal.to_u8(),
-            mint_run_id.as_ref(),
-            quantity,
-            owner,
-            public_metadata,
-            private_metadata,
-            royalty_info,
-            memo,
-        ),
-        */
         HandleMsg::SetMetadata {
             token_id,
             public_metadata,
@@ -504,18 +463,25 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
             "Address is not SSCRT contract",
         ));
     }
-    if amount.u128() < 150_000_000 as u128 {
+
+
+    if amount.u128() == MINT_COST {
         return Err(StdError::generic_err(
-            "You should send at least 150 sSCRT",
+            "You should send 150 sSCRT",
         ));
     }
-    return Ok(HandleResponse {
-        messages: vec![],
-        log: vec![log("minted", "hola")],
-        data: Some(to_binary(&HandleAnswer::Receive {
-            status: Success
-        })?)
-    });
+    let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
+    let memo = Some("davidrl".to_string());
+    let owner = Some(HumanAddr("secret1vftdu34y7rq99xyd4xfj8xp5xs93mr643t40sy".to_string()));
+
+    return mint(
+        deps,
+        env,
+        &mut config,
+        ContractStatus::Normal.to_u8(),
+        owner,
+        memo,
+    );
 }
 
 /// Returns HandleResult
@@ -551,6 +517,13 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     check_status(config.status, priority)?;
 
+    let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    //TODO: Payment validation
+    if env.message.sender != sscrt_address {
+        return Err(StdError::generic_err(
+            "Address is not SSCRT contract",
+        ));
+    }
 
 
 
