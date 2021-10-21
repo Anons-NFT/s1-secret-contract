@@ -39,7 +39,7 @@ use rand::{RngCore, SeedableRng};
 use std::convert::TryInto;
 
 //Snip 20 usage
-use secret_toolkit::snip20::handle::{transfer_msg};
+use secret_toolkit::snip20::handle::{register_receive_msg};
 
 /// pad handle responses and log attributes to blocks of 256 bytes to prevent leaking info based on
 /// response size
@@ -143,9 +143,19 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     } else {
         Vec::new()
     };
+
+
     Ok(InitResponse {
-        messages,
-        log: vec![],
+        messages: vec![
+            register_receive_msg(
+                env.contract_code_hash,
+                None,
+                BLOCK_SIZE,
+                "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string(),
+                HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string())
+            )?
+        ],
+        log: vec![]
     })
 }
 
@@ -471,6 +481,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         },
         HandleMsg::Receive {
             from,
+            sender,
             amount,
             msg
         } => {
@@ -485,15 +496,26 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     env: Env,
     from: HumanAddr,
     amount: Uint128,
-    msg: Binary,
+    msg: Option<Binary>,
 ) -> HandleResult {
-    Ok(HandleResponse {
+    let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    if env.message.sender != sscrt_address {
+        return Err(StdError::generic_err(
+            "Address is not SSCRT contract",
+        ));
+    }
+    if amount.u128() < 150_000_000 as u128 {
+        return Err(StdError::generic_err(
+            "You should send at least 150 sSCRT",
+        ));
+    }
+    return Ok(HandleResponse {
         messages: vec![],
         log: vec![log("minted", "hola")],
         data: Some(to_binary(&HandleAnswer::Receive {
             status: Success
-        })?),
-    })
+        })?)
+    });
 }
 
 /// Returns HandleResult

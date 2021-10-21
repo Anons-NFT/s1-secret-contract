@@ -19,7 +19,7 @@ unit-test:
 	cargo test
 
 .PHONY: integration-test
-integration-test: compile-optimized 
+integration-test: compile-optimized
 	tests/integration.sh
 
 .PHONY: list-code

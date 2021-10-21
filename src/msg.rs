@@ -111,9 +111,11 @@ pub struct PostInitCallback {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Receive {
+        sender: HumanAddr,
+        from: HumanAddr,
         amount: Uint128,
-        msg: Binary,
-        from: HumanAddr
+        #[serde(default)]
+        msg: Option<Binary>,
     },
     /// mint new token
     Mint {
