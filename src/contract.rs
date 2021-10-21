@@ -4704,14 +4704,19 @@ fn store_royalties<S: Storage, A: Api>(
     // if RoyaltyInfo is provided, check and save it
     if let Some(royal_inf) = royalty_info {
         // the allowed message length won't let enough u16 rates to overflow u128
-        let total_rates: u128 = royal_inf.royalties.iter().map(|r| r.rate as u128).sum();
+        let total_rates: u128 = royal_inf.royalties.iter().map(|r| {
+            return r.rate as u128 * (10 as u128).pow(royal_inf.decimal_places_in_rates as u32);
+        }).sum();
+
         let (royalty_den, overflow) =
-            U256::from(10).overflowing_pow(U256::from(royal_inf.decimal_places_in_rates));
+            U256::from(10).overflowing_mul(U256::from(10).pow(U256::from(royal_inf.decimal_places_in_rates)));
+
         if overflow {
             return Err(StdError::generic_err(
                 "The number of decimal places used in the royalty rates is larger than supported",
             ));
         }
+
         if U256::from(total_rates) > royalty_den {
             return Err(StdError::generic_err(
                 "The sum of royalty rates must not exceed 100%",
