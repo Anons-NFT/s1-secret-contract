@@ -2,7 +2,7 @@
 /target
 contract.wasm
 contract.wasm.gz
-
+deploy.sh
 # Binaries
 *.wasm
 *.wasm.gz

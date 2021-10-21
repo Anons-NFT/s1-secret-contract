@@ -29,7 +29,7 @@ mod tests {
         };
         let royalty3 = Royalty {
             recipient:HumanAddr("secret17qvcesavppsmylnxdk8ae7ktl2lsfjnwlv09kv".to_string()),
-            rate:2
+            rate:25
         };
         let royalty4 = Royalty {
             recipient:HumanAddr("secret1vftdu34y7rq99xyd4xfj8xp5xs93mr643t40sy".to_string()),
