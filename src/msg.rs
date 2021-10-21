@@ -109,6 +109,15 @@ pub struct PostInitCallback {
 
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+pub enum HandleReceiveMsg {
+    ReceiveMint {
+        address: HumanAddr,
+        handle: String
+    },
+}
+
+#[derive(Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Receive {
         sender: HumanAddr,

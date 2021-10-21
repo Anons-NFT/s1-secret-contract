@@ -17,7 +17,7 @@ use crate::mint_run::{StoredMintRunInfo};
 use crate::msg::{
     AccessLevel, Burn, ContractStatus, Cw721Approval, Cw721OwnerOfResponse, HandleAnswer,
     HandleMsg, InitMsg, Mint, QueryAnswer, QueryMsg, ReceiverInfo, ResponseStatus::Success, Send,
-    Snip721Approval, Transfer, ViewerInfo,
+    Snip721Approval, Transfer, ViewerInfo, HandleReceiveMsg
 };
 use crate::rand::sha_256;
 use crate::receiver::{batch_receive_nft_msg, receive_nft_msg};
@@ -460,37 +460,39 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
 
-    //{send:{...}}
-    if sender == from {
-        return Err(StdError::generic_err(
-            "Sender and From must not be the same, use send_from to perform this transaction",
-        ));
-    }
     if from != sscrt_address {
         return Err(StdError::generic_err(
             "Address is not SSCRT contract",
         ));
     }
 
-
     if amount.u128() != MINT_COST {
         return Err(StdError::generic_err(
             "You should send 150 sSCRT",
         ));
     }
-    let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
-    let bin_msg = msg.unwrap();
-    let memo = from_binary(&bin_msg)?;
 
-    // let _msg = msg.as_ref().unwrap().to_base64();
-    return mint(
-        deps,
-        env,
-        &mut config,
-        ContractStatus::Normal.to_u8(),
-        Some(sender),
-        memo,
-    );
+    let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
+
+    if let Some(bin_msg) = msg {
+        match from_binary(&bin_msg)? {
+            HandleReceiveMsg::ReceiveMint {
+                address,
+                handle
+            } => {
+                mint(
+                    deps,
+                    env,
+                    &mut config,
+                    ContractStatus::Normal.to_u8(),
+                    Some(address),
+                    Some(handle),
+                )
+            }
+        }
+     } else {
+        Err(StdError::generic_err("data should be given"))
+     }
 }
 
 /// Returns HandleResult
@@ -533,8 +535,6 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
             "Address is not SSCRT contract",
         ));
     }
-
-
 
     //Does not let minting occur above 580 tokens
     if config.token_cnt >= MAX_TOKENS {
