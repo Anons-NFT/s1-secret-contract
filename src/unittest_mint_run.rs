@@ -21,19 +21,19 @@ mod tests {
 
         let royalty1 = Royalty {
             recipient:HumanAddr("secret1tv0wkl89th5eshh4cprrwwrncvprp0a7jdtr5n".to_string()),
-            rate:25
+            rate:10
         };
         let royalty2 = Royalty {
             recipient:HumanAddr("secret1hcakhdfaqfd9ja0h8vy5vxe3le0sfgaj7m9zpw".to_string()),
-            rate:25
+            rate:2
         };
         let royalty3 = Royalty {
             recipient:HumanAddr("secret17qvcesavppsmylnxdk8ae7ktl2lsfjnwlv09kv".to_string()),
-            rate:25
+            rate:4
         };
         let royalty4 = Royalty {
             recipient:HumanAddr("secret1vftdu34y7rq99xyd4xfj8xp5xs93mr643t40sy".to_string()),
-            rate:25
+            rate:50
         };
 
         royalties.push(royalty1);
@@ -66,7 +66,7 @@ mod tests {
             preload_tokens:preload_tokens,
             whitelist_minters: minters,
             royalty_info: Some(RoyaltyInfo {
-                decimal_places_in_rates:2,
+                decimal_places_in_rates:1,
                 royalties: royalties,
             }),
             config: None,
@@ -107,7 +107,7 @@ mod tests {
         let handle_result = handle(&mut deps, mock_env("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx", &[]), handle_msg);
 
         // let error = extract_error_msg(handle_result);
-        print!("hola {:?} \n",handle_result.ok().unwrap());
+        // print!("hola {:?} \n",handle_result.ok().unwrap());
         // assert!(handle_result.is_ok());
         // assert!(error.contains("Only designated minters are allowed to mint"));
         // print!("error here\n {}",error);

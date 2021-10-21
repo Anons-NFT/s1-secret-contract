@@ -600,54 +600,28 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     // Contract callback hash
     // let callback_code_hash: String = load(&deps.storage, &CALLBACK_KEY)?;
-
-    // let total_rates: u128 = royalty_list.royalties.iter().map(|r| r.rate as u128).sum();
-    // if total_rates == 100 {
-    //     return Err(StdError::generic_err(
-    //         "Total rates must be 100%",
-    //     ))
-    // }
-
-    // let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
-    // let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
-    // let padding = None;
-    // let block_size = 256;
-    // let default_royalty = HumanAddr("".to_string());
-
-    // for royalty in royalty_list.royalties.iter() {
-    //     let rate :u128 = royalty.rate.into();
-    //     let decimal_places : u32 = royalty_list.decimal_places_in_rates.into();
-    //     // 50 -> .50
-    //     let percentage = rate / ((10 as u128).pow(decimal_places));
-    //     let amount = Uint128(MINT_COST * percentage / 100);
-    //     let recipient = deps.api.human_address(&royalty.recipient).unwrap_or(default_royalty.clone());
-    //     let cosmos_msg = transfer_msg(
-    //         recipient,
-    //         amount,
-    //         padding.clone(),
-    //         block_size.clone(),
-    //         callback_code_hash.clone(),
-    //         contract_addr.clone(),
-    //     )?;
-    //     msg_list.push(cosmos_msg);
-    // }
-
-
     let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
     let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
     let padding = None;
     let block_size = 256;
+    //TODO remove this
+    let default_royalty = HumanAddr("".to_string());
 
-    let recipient = HumanAddr("secret1vppheqkkzray9ayxusee5fdhde56723f2y0027".to_string());
-    let cosmos_msg = transfer_msg(
-        recipient,
-        Uint128(MINT_COST),
-        padding.clone(),
-        block_size.clone(),
-        callback_code_hash.clone(),
-        contract_addr.clone(),
-    )?;
-    msg_list.push(cosmos_msg);
+    for royalty in royalty_list.royalties.iter() {
+        let decimal_places : u32 = royalty_list.decimal_places_in_rates.into();
+        let rate :u128 = (royalty.rate as u128) * (10 as u128).pow(decimal_places);
+        let amount = Uint128((MINT_COST * rate / 100) / (100 as u128).pow(decimal_places));
+        let recipient = deps.api.human_address(&royalty.recipient).unwrap_or(default_royalty.clone());
+        let cosmos_msg = transfer_msg(
+            recipient,
+            amount,
+            padding.clone(),
+            block_size.clone(),
+            callback_code_hash.clone(),
+            contract_addr.clone(),
+        )?;
+        msg_list.push(cosmos_msg);
+    }
 
 
 
@@ -4704,12 +4678,13 @@ fn store_royalties<S: Storage, A: Api>(
     // if RoyaltyInfo is provided, check and save it
     if let Some(royal_inf) = royalty_info {
         // the allowed message length won't let enough u16 rates to overflow u128
-        let total_rates: u128 = royal_inf.royalties.iter().map(|r| {
-            return r.rate as u128 * (10 as u128).pow(royal_inf.decimal_places_in_rates as u32);
-        }).sum();
+        let decimals = royal_inf.decimal_places_in_rates;
 
+        let total_rates: u128 = royal_inf.royalties.iter().map(|r| {
+            return r.rate as u128 * (10 as u128).pow(decimals as u32 );
+        }).sum();
         let (royalty_den, overflow) =
-            U256::from(10).overflowing_mul(U256::from(10).pow(U256::from(royal_inf.decimal_places_in_rates)));
+            U256::from(100).overflowing_mul(U256::from(100).pow(U256::from(decimals)));
 
         if overflow {
             return Err(StdError::generic_err(
