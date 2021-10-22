@@ -54,7 +54,7 @@ pub const MAX_TOKENS: u32 = 16;
 pub const MINT_COST: u128 = 150000000; //150 sSCRT
 
 ///Time until whitelist expires
-pub const EXPIRATION: u64 = 86400; //1 day
+pub const EXPIRATION: u64 = 1800; //1 day
 
 
 
@@ -640,7 +640,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let public_metadata = Some(Metadata {
         token_uri: None,
         extension: Some(Extension {
-            image: Some(token_data_list[num].img_url.clone()),
+            image: None,
             image_data: None,
             external_url: None,
             description: None,
@@ -657,7 +657,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let private_metadata = Some(Metadata {
         token_uri: None,
         extension: Some(Extension {
-            image: None,
+            image: Some(token_data_list[num].img_url.clone()),
             image_data: None,
             external_url: None,
             description: None,
@@ -4174,9 +4174,32 @@ fn transfer_impl<S: Storage, A: Api, Q: Querier>(
     )?;
 
 
-    //Delete metadata on token transfer
-    let mut meta_store = PrefixedStorage::new(PREFIX_PRIV_META, & mut deps.storage);
-    remove(&mut meta_store, &idx.to_le_bytes());
+    //Remove handle from metadata
+    let meta_store = PrefixedStorage::new(PREFIX_PRIV_META, & mut deps.storage);
+    let meta: Metadata = may_load(&meta_store, &idx.to_le_bytes())?.unwrap_or(Metadata {
+        token_uri: None,
+        extension: None,
+    });
+
+    let private = Metadata {
+        token_uri:None,
+        extension : Some(Extension {
+            image: Some(meta.extension.unwrap().image.unwrap_or("".to_string()).clone()),
+            image_data: None,
+            external_url: None,
+            description: None,
+            name: None,
+            attributes: None,
+            background_color: None,
+            animation_url: None,
+            youtube_url: None,
+            media: None,
+            protected_attributes: None
+        })
+    };
+
+    set_metadata_impl(&mut deps.storage, &token, idx, PREFIX_PRIV_META, &private)?;
+
 
 
     Ok(old_owner)
