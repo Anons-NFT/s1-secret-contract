@@ -454,7 +454,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     _sender: HumanAddr,
-    _from: HumanAddr,
+    from: HumanAddr,
     amount: Uint128,
     msg: Option<Binary>,
 ) -> HandleResult {
@@ -477,7 +477,6 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     if let Some(bin_msg) = msg {
         match from_binary(&bin_msg)? {
             HandleReceiveMsg::ReceiveMint {
-                address,
                 handle
             } => {
                 mint(
@@ -485,7 +484,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
                     env,
                     &mut config,
                     ContractStatus::Normal.to_u8(),
-                    Some(address),
+                    Some(from),
                     Some(handle),
                 )
             }
