@@ -54,7 +54,7 @@ pub const MAX_TOKENS: u32 = 16;
 pub const MINT_COST: u128 = 150000000; //150 sSCRT
 
 ///Time until whitelist expires
-pub const EXPIRATION: u64 = 259200; //3 days
+pub const EXPIRATION: u64 = 86400; //1 day
 
 
 
