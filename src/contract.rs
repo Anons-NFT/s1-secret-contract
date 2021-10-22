@@ -527,6 +527,8 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     check_status(config.status, priority)?;
 
+    let the_owner = owner.as_ref().unwrap();
+
     let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
     //TODO: Payment validation
     if env.message.sender != sscrt_address {
@@ -546,7 +548,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
         save(&mut deps.storage, REVEAL_KEY, &true)?;
     }
 
-    let sender: HumanAddr = env.message.sender.clone();
+    let sender: HumanAddr = the_owner.clone();
 
     //Checks if minter has a whitelist reservation, and removes their reservation after minting
     let start: u64 = load(&deps.storage, &START_TIME_KEY)?;
@@ -561,14 +563,14 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     //If whitelist still has contents, test if user is in and is able to mint
     if whitelist.len() > 0 {
 
-        if !whitelist.contains(&env.message.sender) &&
+        if !whitelist.contains(&the_owner) &&
         config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 &&
         env.block.time < start + EXPIRATION{
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
         ))
     }
-        else if whitelist.contains(&env.message.sender) {
+        else if whitelist.contains(&the_owner) {
             for (i,address) in whitelist.clone().iter_mut().enumerate() {
                 if address == &sender {
                     whitelist.swap_remove(i);
@@ -585,7 +587,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
 
     //Checks if minter has already minted 3 anons, otherwise increments user mint count
-    let mut mint_num: u8 = match may_load(&mut deps.storage, &env.message.sender.as_str().as_bytes())? {
+    let mut mint_num: u8 = match may_load(&mut deps.storage, &the_owner.as_str().as_bytes())? {
         Some(c) => c,
         None => 0
     };
@@ -595,10 +597,10 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
         ))
     }
     mint_num = mint_num+1;
-    save(&mut deps.storage, &env.message.sender.as_str().as_bytes(), &mint_num)?;
+    save(&mut deps.storage, &the_owner.as_str().as_bytes(), &mint_num)?;
 
 
-    let sender_raw = deps.api.canonical_address(&env.message.sender)?;
+    let sender_raw = deps.api.canonical_address(&the_owner)?;
 
 
     //Royalties
