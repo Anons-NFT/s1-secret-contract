@@ -28,7 +28,7 @@ use crate::state::{
     CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, REVEAL_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
     PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
-    PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,
+    PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,SSCRT_ADDRESS_KEY
 };
 use crate::token::{Metadata, Token, Extension};
 use crate::viewing_key::{ViewingKey, VIEWING_KEY_SIZE};
@@ -104,7 +104,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let preload_tokens = msg.preload_tokens;
 
     let callback_hash: String = msg.callback;
-
+    let sscrt_address:HumanAddr = msg.sscrt_address;
     let start_time = env.block.time;
 
     let reveal: bool = false;
@@ -113,6 +113,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     save(&mut deps.storage, REVEAL_KEY, &reveal)?;
     save(&mut deps.storage, START_TIME_KEY, &start_time)?;
     save(&mut deps.storage, CALLBACK_KEY, &callback_hash)?;
+    save(&mut deps.storage, SSCRT_ADDRESS_KEY, &sscrt_address)?;
     save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
     save(&mut deps.storage, PRELOAD_KEY, &preload_tokens)?;
     save(&mut deps.storage, CONFIG_KEY, &config)?;
@@ -151,8 +152,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                 env.contract_code_hash,
                 None,
                 BLOCK_SIZE,
-                "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string(),
-                HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string())
+                callback_hash,
+                sscrt_address
             )?
         ],
         log: vec![]
@@ -446,7 +447,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     amount: Uint128,
     msg: Option<Binary>,
 ) -> HandleResult {
-    let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    let sscrt_address: HumanAddr = load(&deps.storage, SSCRT_ADDRESS_KEY)?;
 
     if env.message.sender != sscrt_address {
         return Err(StdError::generic_err(
@@ -517,7 +518,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     let the_owner = owner.as_ref().unwrap();
 
-    let sscrt_address = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    let sscrt_address: HumanAddr = load(&deps.storage, SSCRT_ADDRESS_KEY)?;
     //TODO: Payment validation
     if env.message.sender != sscrt_address {
         return Err(StdError::generic_err(
@@ -581,7 +582,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     };
     if mint_num >= 3 {
         return Err(StdError::generic_err(
-            "You have reached the your mint limit of 3 Anons",
+            "You have reached your mint limit of 3 Anons",
         ))
     }
     mint_num = mint_num+1;
@@ -596,26 +597,22 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
 
     // Contract callback hash
-    // let callback_code_hash: String = load(&deps.storage, &CALLBACK_KEY)?;
-    let callback_code_hash = "cd400fb73f5c99edbc6aab22c2593332b8c9f2ea806bf9b42e3a523f3ad06f62".to_string();
-    let contract_addr = HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string());
+    let callback_code_hash: String = load(&deps.storage, &CALLBACK_KEY)?;
     let padding = None;
     let block_size = 256;
-    //TODO remove this
-    let default_royalty = HumanAddr("".to_string());
 
     for royalty in royalty_list.royalties.iter() {
         let decimal_places : u32 = royalty_list.decimal_places_in_rates.into();
         let rate :u128 = (royalty.rate as u128) * (10 as u128).pow(decimal_places);
         let amount = Uint128((MINT_COST * rate / 100) / (100 as u128).pow(decimal_places));
-        let recipient = deps.api.human_address(&royalty.recipient).unwrap_or(default_royalty.clone());
+        let recipient = deps.api.human_address(&royalty.recipient).unwrap();
         let cosmos_msg = transfer_msg(
             recipient,
             amount,
             padding.clone(),
             block_size.clone(),
             callback_code_hash.clone(),
-            contract_addr.clone(),
+            sscrt_address.clone(),
         )?;
         msg_list.push(cosmos_msg);
     }

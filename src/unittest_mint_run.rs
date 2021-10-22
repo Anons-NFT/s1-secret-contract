@@ -61,6 +61,7 @@ mod tests {
         let init_msg = InitMsg {
             name: "Anons".to_string(),
             symbol: "ANON".to_string(),
+            sscrt_address:HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string()),
             admin: None,
             entropy: "entropytest".to_string(),
             preload_tokens:preload_tokens,

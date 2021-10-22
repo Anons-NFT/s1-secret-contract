@@ -19,6 +19,8 @@ use crate::msg::{Tx, TxAction};
 pub const WHITELIST_KEY: &[u8] = b"whitelist";
 /// Storage key for preloaded tokens
 pub const PRELOAD_KEY: &[u8] = b"preload";
+/// prefix for the storage of SSCRT address
+pub const SSCRT_ADDRESS_KEY: &[u8] = b"sscrt";
 /// Storage for callback hash
 pub const CALLBACK_KEY: &[u8] = b"callback";
 /// Storage for start time key for whitelist usage
@@ -541,7 +543,7 @@ pub fn json_save<T: Serialize, S: Storage>(
 }
 
 /// Returns StdResult<T> from retrieving the item with the specified key using Json
-/// (de)serialization because bincode2 annoyingly uses a float op when deserializing an enum.  
+/// (de)serialization because bincode2 annoyingly uses a float op when deserializing an enum.
 /// Returns a StdError::NotFound if there is no item with that key
 ///
 /// # Arguments

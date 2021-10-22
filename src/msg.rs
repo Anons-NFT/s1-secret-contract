@@ -38,7 +38,9 @@ pub struct InitMsg {
     /// list of preloaded token data
     pub preload_tokens: Vec<PreLoad>,
     /// Stores callback hash
-    pub callback: String
+    pub callback: String,
+    /// Stores sscrt address
+    pub sscrt_address: HumanAddr
 }
 
 /// This type represents optional configuration values.
