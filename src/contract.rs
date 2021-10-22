@@ -625,7 +625,12 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let seed: [u8; 32] = prng.as_slice().try_into().expect("Wrong length");
     let mut rng = ChaChaRng::from_seed(seed);
 
-    let num = (rng.next_u32() % (token_data_list.len() as u32 - 1)) as usize; // a number between 0 and the last slot in token_data_list
+    let num = if token_data_list.len() > 1 {
+        (rng.next_u32() % (token_data_list.len() as u32 - 1)) as usize
+        // a number between 0 and the last slot in token_data_list
+    } else {
+        0
+    };
 
     //Assign data taken from pool
     let token_id: Option<String> = Some(token_data_list[num].id.clone());
