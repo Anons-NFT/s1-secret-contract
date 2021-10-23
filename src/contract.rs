@@ -53,8 +53,6 @@ pub const MAX_TOKENS: u32 = 16;
 ///Mint cost per Anon
 pub const MINT_COST: u128 = 150000000; //150 sSCRT
 
-///Time until whitelist expires
-pub const EXPIRATION: u64 = 1800; //1 day
 
 
 
@@ -547,21 +545,13 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let sender: HumanAddr = the_owner.clone();
 
     //Checks if minter has a whitelist reservation, and removes their reservation after minting
-    let start: u64 = load(&deps.storage, &START_TIME_KEY)?;
     let mut whitelist: Vec<HumanAddr> = load(&deps.storage, &WHITELIST_KEY)?;
-
-    //Clears whitelist if time has expired and not already cleared
-    if env.block.time >= start + EXPIRATION && whitelist.len() > 0 {
-        whitelist.clear();
-        save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
-    }
 
     //If whitelist still has contents, test if user is in and is able to mint
     if whitelist.len() > 0 {
 
         if !whitelist.contains(&the_owner) &&
-        config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 &&
-        env.block.time < start + EXPIRATION{
+        config.token_cnt >= MAX_TOKENS - whitelist.len() as u32 {
         return Err(StdError::generic_err(
             "Remaining tokens are reserved",
         ))
