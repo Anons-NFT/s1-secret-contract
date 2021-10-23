@@ -623,7 +623,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let mut rng = ChaChaRng::from_seed(seed);
 
     let num = if token_data_list.len() > 1 {
-        (rng.next_u32() % (token_data_list.len() as u32)) as usize
+        (rng.next_u32() % (token_data_list.len() as u32 - 1)) as usize
         // a number between 0 and the last slot in token_data_list
     } else {
         0
