@@ -178,6 +178,13 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     let mut config: Config = load(&deps.storage, CONFIG_KEY)?;
 
     let response = match msg {
+        HandleMsg::SetInvalidWhitelist {} =>
+        set_expired_whitelist(
+            deps,
+            env,
+            &config,
+            ContractStatus::StopTransactions.to_u8(),
+        ),
         HandleMsg::SetMetadata {
             token_id,
             public_metadata,
@@ -751,6 +758,32 @@ pub fn set_metadata<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![],
         data: Some(to_binary(&HandleAnswer::SetMetadata { status: Success })?),
+    })
+}
+
+pub fn set_expired_whitelist<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    config: &Config,
+    priority: u8,
+) -> HandleResult {
+    check_status(config.status, priority)?;
+    let sender_raw = deps.api.canonical_address(&env.message.sender)?;
+    let custom_err = "Only admin is allowed to perfom this transaction".to_string();
+    let config: Config = load(&deps.storage, CONFIG_KEY)?;
+
+    if sender_raw != config.admin {
+        return Err(StdError::generic_err(custom_err));
+    }
+
+    let whitelist :Vec<HumanAddr> = Vec::new();
+    save(&mut deps.storage, WHITELIST_KEY, &whitelist)?;
+
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![],
+        data: Some(to_binary(&HandleAnswer::SetInvalidWhitelist { status: Success })?),
     })
 }
 

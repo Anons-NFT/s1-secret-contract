@@ -120,6 +120,7 @@ pub enum HandleReceiveMsg {
 #[derive(Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
+    SetInvalidWhitelist { },
     Receive {
         sender: HumanAddr,
         from: HumanAddr,
@@ -459,6 +460,9 @@ pub enum HandleAnswer {
         last_minted: String,
     },
     */
+    SetInvalidWhitelist {
+        status: ResponseStatus,
+    },
     SetMetadata {
         status: ResponseStatus,
     },
