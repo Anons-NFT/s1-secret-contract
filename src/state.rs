@@ -71,6 +71,8 @@ pub const PREFIX_RECEIVERS: &[u8] = b"receivers";
 /// prefix for the storage of mint run numbers
 pub const PREFIX_MINT_RUN_NUM: &[u8] = b"runnum";
 
+pub const DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY: &[u8] = b"defaultmintfundsdistribution";
+
 
 /// Token contract config
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]

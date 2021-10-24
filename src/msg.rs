@@ -40,7 +40,10 @@ pub struct InitMsg {
     /// Stores callback hash
     pub callback: String,
     /// Stores sscrt address
-    pub sscrt_address: HumanAddr
+    pub sscrt_address: HumanAddr,
+
+    // The list of addreses to divide up.
+    pub mint_funds_distribution_info: Option<RoyaltyInfo>
 }
 
 /// This type represents optional configuration values.

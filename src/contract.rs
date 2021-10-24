@@ -28,7 +28,8 @@ use crate::state::{
     CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, REVEAL_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
     PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
-    PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,SSCRT_ADDRESS_KEY
+    PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,SSCRT_ADDRESS_KEY,
+    DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY
 };
 use crate::token::{Metadata, Token, Extension};
 use crate::viewing_key::{ViewingKey, VIEWING_KEY_SIZE};
@@ -127,6 +128,16 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             msg.royalty_info.as_ref(),
             None,
             DEFAULT_ROYALTY_KEY,
+        )?;
+    }
+
+    if msg.mint_funds_distribution_info.is_some() {
+        store_royalties(
+            &mut deps.storage,
+            &deps.api,
+            msg.mint_funds_distribution_info.as_ref(),
+            None,
+            DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY
         )?;
     }
 
@@ -591,7 +602,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     //Royalties
     let mut msg_list: Vec<CosmosMsg> = vec![];
-    let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_ROYALTY_KEY)?.unwrap();
+    let royalty_list = may_load::<StoredRoyaltyInfo, _>(&deps.storage, DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY)?.unwrap();
 
     // Contract callback hash
     let callback_code_hash: String = load(&deps.storage, &CALLBACK_KEY)?;
