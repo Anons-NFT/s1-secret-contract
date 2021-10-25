@@ -31,7 +31,7 @@ use crate::state::{
     PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,SSCRT_ADDRESS_KEY,
     DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY
 };
-use crate::token::{Metadata, Token, Extension};
+use crate::token::{Metadata, Token, Extension, MediaFile};
 use crate::viewing_key::{ViewingKey, VIEWING_KEY_SIZE};
 
 // For randomization
@@ -657,7 +657,14 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
             background_color: None,
             animation_url: None,
             youtube_url: None,
-            media: None,
+            media: Some(vec![
+                MediaFile {
+                    file_type: Some("image".to_string()),
+                    extension: Some("png".to_string()),
+                    url: token_data_list[num].img_url.clone(),
+                    authentication: None
+                }
+            ]),
             protected_attributes: None
         })
     });
@@ -665,7 +672,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
     let private_metadata = Some(Metadata {
         token_uri: None,
         extension: Some(Extension {
-            image: Some(token_data_list[num].img_url.clone()),
+            image: None,
             image_data: None,
             external_url: None,
             description: None,
