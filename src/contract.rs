@@ -25,7 +25,7 @@ use crate::royalties::{RoyaltyInfo, StoredRoyaltyInfo};
 use crate::state::{
     get_txs, json_may_load, json_save, load, may_load, remove, save, store_burn, store_mint,
     store_transfer, AuthList, Config, Permission, PermissionType, PreLoad, ReceiveRegistration, WHITELIST_KEY, BLOCK_KEY, CALLBACK_KEY,
-    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, REVEAL_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
+    CONFIG_KEY, CREATOR_KEY, DEFAULT_ROYALTY_KEY, MINTERS_KEY, PRELOAD_KEY, START_TIME_KEY, PREFIX_ALL_PERMISSIONS,
     PREFIX_AUTHLIST, PREFIX_INFOS, PREFIX_MAP_TO_ID, PREFIX_MAP_TO_INDEX, PREFIX_MINT_RUN,
     PREFIX_OWNER_PRIV, PREFIX_PRIV_META, PREFIX_PUB_META, PREFIX_RECEIVERS,
     PREFIX_ROYALTY_INFO, PREFIX_VIEW_KEY, PRNG_SEED_KEY,SSCRT_ADDRESS_KEY,
@@ -106,10 +106,10 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let sscrt_address:HumanAddr = msg.sscrt_address;
     let start_time = env.block.time;
 
-    let reveal: bool = false;
+
 
     let minters = vec![admin_raw];
-    save(&mut deps.storage, REVEAL_KEY, &reveal)?;
+
     save(&mut deps.storage, START_TIME_KEY, &start_time)?;
     save(&mut deps.storage, CALLBACK_KEY, &callback_hash)?;
     save(&mut deps.storage, SSCRT_ADDRESS_KEY, &sscrt_address)?;
@@ -547,10 +547,6 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
         return Err(StdError::generic_err(
             "There are only 580 tokens in this collection",
         ))
-    }
-    //If this current mint brings count to 580, make reveal true
-    else if config.token_cnt == MAX_TOKENS - 1 {
-        save(&mut deps.storage, REVEAL_KEY, &true)?;
     }
 
     let sender: HumanAddr = the_owner.clone();
@@ -1805,7 +1801,6 @@ pub fn reveal_all_tokens<S: Storage, A: Api, Q: Querier>(
         ));
     }
 
-    save(&mut deps.storage, REVEAL_KEY, &true)?;
 
     Ok(HandleResponse {
         messages: vec![],
@@ -2078,14 +2073,6 @@ pub fn query_owner_of<S: Storage, A: Api, Q: Querier>(
 /// * `token_id` - string slice of the token id
 pub fn query_nft_info<S: ReadonlyStorage>(storage: &S, token_id: &str) -> QueryResult {
 
-    //Checks if all tokens have been revealed yet
-    let revealed: bool = load(storage, &REVEAL_KEY)?;
-    if !revealed {
-        return Err(StdError::generic_err(
-            "Tokens have not yet been revealed!",
-        ))
-    }
-
     let map2idx = ReadonlyPrefixedStorage::new(PREFIX_MAP_TO_INDEX, storage);
     let may_idx: Option<u32> = may_load(&map2idx, token_id.as_bytes())?;
     // if token id was found
@@ -2177,14 +2164,6 @@ pub fn query_all_nft_info<S: Storage, A: Api, Q: Querier>(
     viewer: Option<ViewerInfo>,
     include_expired: Option<bool>,
 ) -> QueryResult {
-
-    //Checks if all tokens have been revealed yet
-    let revealed: bool = load(&deps.storage, &REVEAL_KEY)?;
-    if !revealed {
-        return Err(StdError::generic_err(
-            "Tokens have not yet been revealed!",
-        ))
-    }
 
     let (owner, approvals, idx) = process_cw721_owner_of(deps, token_id, viewer, include_expired)?;
     let meta_store = ReadonlyPrefixedStorage::new(PREFIX_PUB_META, &deps.storage);
