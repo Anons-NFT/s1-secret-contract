@@ -52,6 +52,24 @@ impl RoyaltyInfo {
     }
 }
 
+/// display for a single royalty
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+pub struct DisplayRoyalty {
+    /// address to send royalties to.  Can be None to keep addresses private
+    pub recipient: Option<HumanAddr>,
+    /// royalty rate
+    pub rate: u16,
+}
+
+/// display all royalty information
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+pub struct DisplayRoyaltyInfo {
+    /// decimal places in royalty rates
+    pub decimal_places_in_rates: u8,
+    /// list of royalties
+    pub royalties: Vec<DisplayRoyalty>,
+}
+
 /// data for storing a single royalty
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct StoredRoyalty {
@@ -62,12 +80,29 @@ pub struct StoredRoyalty {
 }
 
 impl StoredRoyalty {
+    /// Returns StdResult<DisplayRoyalty> from creating a DisplayRoyalty from a StoredRoyalty
+    ///
+    /// # Arguments
+    ///
+    /// * `api` - a reference to the Api used to convert human and canonical addresses
+    /// * `hide_addr` - true if the address should be kept hidden
+    pub fn to_human<A: Api>(&self, api: &A, hide_addr: bool) -> StdResult<DisplayRoyalty> {
+        let recipient = if hide_addr {
+            None
+        } else {
+            Some(api.human_address(&self.recipient)?)
+        };
+        Ok(DisplayRoyalty {
+            recipient,
+            rate: self.rate,
+        })
+    }
     /// Returns StdResult<Royalty> from creating a Royalty from a StoredRoyalty
     ///
     /// # Arguments
     ///
     /// * `api` - a reference to the Api used to convert human and canonical addresses
-    pub fn to_human<A: Api>(&self, api: &A) -> StdResult<Royalty> {
+    pub fn to_human_old<A: Api>(&self, api: &A) -> StdResult<Royalty> {
         Ok(Royalty {
             recipient: api.human_address(&self.recipient)?,
             rate: self.rate,
@@ -85,18 +120,34 @@ pub struct StoredRoyaltyInfo {
 }
 
 impl StoredRoyaltyInfo {
+    /// Returns StdResult<DisplayRoyaltyInfo> from creating a DisplayRoyaltyInfo from a StoredRoyaltyInfo
+    ///
+    /// # Arguments
+    ///
+    /// * `api` - a reference to the Api used to convert human and canonical addresses
+    /// * `hide_addr` - true if the address should be kept hidden
+    pub fn to_human<A: Api>(&self, api: &A, hide_addr: bool) -> StdResult<DisplayRoyaltyInfo> {
+        Ok(DisplayRoyaltyInfo {
+            decimal_places_in_rates: self.decimal_places_in_rates,
+            royalties: self
+                .royalties
+                .iter()
+                .map(|r| r.to_human(api, hide_addr))
+                .collect::<StdResult<Vec<DisplayRoyalty>>>()?,
+        })
+    }
     /// Returns StdResult<RoyaltyInfo> from creating a RoyaltyInfo from a StoredRoyaltyInfo
     ///
     /// # Arguments
     ///
     /// * `api` - a reference to the Api used to convert human and canonical addresses
-    pub fn to_human<A: Api>(&self, api: &A) -> StdResult<RoyaltyInfo> {
+    pub fn to_human_old<A: Api>(&self, api: &A) -> StdResult<RoyaltyInfo> {
         Ok(RoyaltyInfo {
             decimal_places_in_rates: self.decimal_places_in_rates,
             royalties: self
                 .royalties
                 .iter()
-                .map(|r| r.to_human(api))
+                .map(|r| r.to_human_old(api))
                 .collect::<StdResult<Vec<Royalty>>>()?,
         })
     }

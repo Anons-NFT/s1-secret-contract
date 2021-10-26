@@ -71,7 +71,10 @@ pub const PREFIX_RECEIVERS: &[u8] = b"receivers";
 pub const PREFIX_MINT_RUN_NUM: &[u8] = b"runnum";
 
 pub const DEFAULT_MINT_FUNDS_DISTRIBUTION_KEY: &[u8] = b"defaultmintfundsdistribution";
-
+/// prefix for the storage of revoked permits
+pub const PREFIX_REVOKED_PERMITS: &str = "revoke";
+/// storage key for this contract's address
+pub const MY_ADDRESS_KEY: &[u8] = b"myaddr";
 
 /// Token contract config
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
