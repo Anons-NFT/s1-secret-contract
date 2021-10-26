@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::contract::{handle, init};
-    use crate::msg::{HandleMsg, InitMsg};
+    use crate::contract::{handle, init,query};
+    use crate::msg::{HandleMsg, InitMsg,QueryMsg};
     use crate::state::{PreLoad};
     use crate::royalties::{Royalty,RoyaltyInfo};
     use cosmwasm_std::testing::*;
@@ -63,10 +63,14 @@ mod tests {
             symbol: "ANON".to_string(),
             sscrt_address:HumanAddr("secret1s7c6xp9wltthk5r6mmavql4xld5me3g37guhsx".to_string()),
             admin: None,
-            entropy: "entropytest".to_string(),
+            entropy: "32b8c9f2eame3g37guhsx806bf9b42e3a5".to_string(),
             preload_tokens:preload_tokens,
             whitelist_minters: minters,
-            royalty_info: Some(RoyaltyInfo {
+            mint_funds_distribution_info: Some(RoyaltyInfo {
+                decimal_places_in_rates:1,
+                royalties: royalties.clone(),
+            }),
+            royalty_info:Some(RoyaltyInfo {
                 decimal_places_in_rates:1,
                 royalties: royalties,
             }),
@@ -93,6 +97,7 @@ mod tests {
     #[test]
     fn test_mint_run_info() {
         let (init_result, mut deps) = init_helper();
+
         assert!(
             init_result.is_ok(),
             "Init failed: {}",
@@ -112,5 +117,40 @@ mod tests {
         // assert!(handle_result.is_ok());
         // assert!(error.contains("Only designated minters are allowed to mint"));
         // print!("error here\n {}",error);
+
+        assert!(
+            init_result.is_ok(),
+            "Init failed: {}",
+            init_result.err().unwrap()
+        );
+
+       // test token not found when supply is public
+       let query_msg = QueryMsg::NftDossier {
+           token_id: "1".to_string(),
+           viewer: None,
+           include_expired: None,
+       };
+       let query_result = query(&deps, query_msg);
+       print!("result {:?}\n",query_result)
     }
+
+    //  // test NftDossier query
+    //  #[test]
+    //  fn test_query_nft_dossier() {
+    //     let (init_result, deps) =
+    //     init_helper();
+    //     assert!(
+    //         init_result.is_ok(),
+    //         "Init failed: {}",
+    //         init_result.err().unwrap()
+    //     );
+
+    //    // test token not found when supply is public
+    //    let query_msg = QueryMsg::NftDossier {
+    //        token_id: "NFT1".to_string(),
+    //        viewer: None,
+    //        include_expired: None,
+    //    };
+    //    let query_result = query(&deps, query_msg);
+    // }
 }
