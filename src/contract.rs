@@ -50,7 +50,7 @@ pub const BLOCK_SIZE: usize = 256;
 pub const ID_BLOCK_SIZE: u32 = 64;
 
 ///Max number of tokens
-pub const MAX_TOKENS: u32 = 16;
+pub const MAX_TOKENS: u32 = 580;
 
 ///Mint cost per Anon
 pub const MINT_COST: u128 = 150000000; //150 sSCRT
