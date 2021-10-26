@@ -8,7 +8,7 @@ use primitive_types::U256;
 /// This contract implements SNIP-721 standard:
 /// https://github.com/SecretFoundation/SNIPs/blob/master/SNIP-721.md
 use std::collections::HashSet;
-
+use crate::rand::{sha_256, Prng};
 use secret_toolkit::{
     permit::{validate, Permit, RevokedPermits},
     utils::{pad_handle_result, pad_query_result},
@@ -22,7 +22,6 @@ use crate::msg::{
     HandleMsg, InitMsg, Mint, QueryAnswer, QueryMsg, QueryWithPermit, ReceiverInfo,
     ResponseStatus::Success, Send, Snip721Approval, Transfer, ViewerInfo,HandleReceiveMsg
 };
-use crate::rand::sha_256;
 use crate::receiver::{batch_receive_nft_msg, receive_nft_msg};
 use crate::royalties::{RoyaltyInfo, StoredRoyaltyInfo};
 use crate::state::{
@@ -40,7 +39,6 @@ use crate::viewing_key::{ViewingKey, VIEWING_KEY_SIZE};
 // For randomization
 use rand_chacha::ChaChaRng;
 use rand::{RngCore, SeedableRng};
-use std::convert::TryInto;
 
 //Snip 20 usage
 use secret_toolkit::snip20::handle::{register_receive_msg,transfer_msg};
@@ -455,6 +453,19 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     };
     pad_handle_result(response, BLOCK_SIZE)
 }
+pub fn new_entropy(env: &Env, seed: &[u8], entropy: &[u8])-> [u8;32]{
+    // 16 here represents the lengths in bytes of the block height and time.
+    let entropy_len = 16 + env.message.sender.len() + entropy.len();
+    let mut rng_entropy = Vec::with_capacity(entropy_len);
+    rng_entropy.extend_from_slice(&env.block.height.to_be_bytes());
+    rng_entropy.extend_from_slice(&env.block.time.to_be_bytes());
+    rng_entropy.extend_from_slice(&env.message.sender.0.as_bytes());
+    rng_entropy.extend_from_slice(entropy);
+
+    let mut rng = Prng::new(seed, &rng_entropy);
+
+    rng.rand_bytes()
+}
 
 /// Returns HandleResult
 ///
@@ -650,9 +661,10 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
 
     // Pull random token data for minting then remove from data pool
     let mut token_data_list: Vec<PreLoad> = load(&deps.storage, &PRELOAD_KEY)?;
-    let prng: Vec<u8> = load(&deps.storage, &PRNG_SEED_KEY)?;
-    let seed: [u8; 32] = prng.as_slice().try_into().expect("Wrong length");
-    let mut rng = ChaChaRng::from_seed(seed);
+    let prng_seed: Vec<u8> = load(&deps.storage, &PRNG_SEED_KEY)?;
+
+    let random_seed  = new_entropy(&env,prng_seed.as_ref(),prng_seed.as_ref());
+    let mut rng = ChaChaRng::from_seed(random_seed);
 
     let num = if token_data_list.len() > 1 {
         (rng.next_u32() % (token_data_list.len() as u32 - 1)) as usize
