@@ -674,7 +674,7 @@ pub fn mint<S: Storage, A: Api, Q: Querier>(
             external_url: None,
             description: None,
             name: token_id.clone(),
-            attributes: None,
+            attributes:token_data_list[num].attributes.clone(),
             background_color: None,
             animation_url: None,
             youtube_url: None,

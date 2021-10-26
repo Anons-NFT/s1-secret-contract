@@ -13,7 +13,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::expiration::Expiration;
 use crate::msg::{Tx, TxAction};
-
+use crate::token::{Trait};
 
 /// Storage key for whitelist
 pub const WHITELIST_KEY: &[u8] = b"whitelist";
@@ -469,7 +469,8 @@ pub struct ReceiveRegistration {
 #[derive(Serialize, Deserialize, Clone, JsonSchema, PartialEq, Debug)]
 pub struct  PreLoad {
     pub id: String,
-    pub img_url: String
+    pub img_url: String,
+    pub attributes : Option<Vec<Trait>>,
 }
 
 
